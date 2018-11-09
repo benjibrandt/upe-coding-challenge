@@ -39,6 +39,9 @@ class MazeRunner(object):
     def _is_end_square(self, move_result):
         return move_result == MazeResult.END
 
+    def _log_square(self):
+        self.tovisit.append(MazeSquare(self.maze.current_location()))
+
     def run(self):
         start_square = MazeSquare(self.maze.current_location())
         self.tovisit.append(start_square)
@@ -46,10 +49,20 @@ class MazeRunner(object):
             curr_square = self.tovisit.pop()
             self.visited.add(curr_square)
             if self._is_valid_square(self.maze.update(MazeMove.UP)):
-                print("happy")
+                print("UP")
+                self._log_square()
+            elif self._is_valid_square(self.maze.update(MazeMove.DOWN)):
+                print("DOWN")
+                self._log_square()
+            elif self._is_valid_square(self.maze.update(MazeMove.LEFT)):
+                print("LEFT")
+                self._log_square()
+            elif self._is_valid_square(self.maze.update(MazeMove.RIGHT)):
+                print("RIGHT")
+                self._log_square()
             else:
-                print("sad")
-
+                print("Joke's on you... you can't move anywhere.")
+                exit(1)
 
 if __name__ == '__main__':
     print("Welcome to maze runner.")

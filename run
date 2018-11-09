@@ -1,0 +1,36 @@
+#!/bin/bash
+# :: run
+################################################
+# Runs the maze runner.
+################################################
+# :: Created By: Benji Brandt <benjibrandt@ucla.edu>
+# :: Creation Date: 9 November 2018
+
+##############################################
+# GLOBALS
+##############################################
+[[ "$VIRTUAL_ENV" == "" ]]; inVirtualEnv=$?
+
+##############################################
+# MAIN
+##############################################
+
+main ()
+{
+  if [ ! -f build/bin/python3 ] || [ ! -f build/bin/pip ]; then
+    echo "Run requires a bootstrapped virtualenv."
+    echo "First bootstrap the virtualenv by running \`./bootstrap.sh\`."
+    exit 1
+  fi
+
+  if [ $inVirtualEnv -eq 0 ]; then
+    source build/bin/activate
+  fi
+
+  python src/maze_runner.py
+
+  deactivate
+  exit 0
+}
+
+main
