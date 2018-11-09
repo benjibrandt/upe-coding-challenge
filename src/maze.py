@@ -26,10 +26,14 @@ class Maze(object):
     @return: an AWS token to be appeneded to URLs.
     """
     def get_token(self, uid):
-        resp = requests.post(Maze.AUTH_URL, data={
+        req = requests.post(Maze.AUTH_URL, data={
             MazeAuth.UID: uid
         })
-        return resp.json()[MazeAuth.TOKEN]
+        if req.status_code != requests.codes.ok:
+            print("ERROR: authentication request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return req.json()[MazeAuth.TOKEN]
 
     """
     Updates the API URLs to a valid session token.
@@ -43,31 +47,56 @@ class Maze(object):
     @return: a string representing game state. Defined in maze_constants.MazeGameState.
     """
     def game_state(self):
-        return requests.get(self.status_url).json()[MazeStatus.STATUS]
+        req = requests.get(self.status_url)
+        if req.status_code != requests.codes.ok:
+            print("ERROR: game state request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return req.json()[MazeStatus.STATUS]
 
     """
-    @return: a 2-entry array representing [x, y] location.
+    @return: a tuple representing [x, y] location.
     """
     def current_location(self):
-        return requests.get(self.status_url).json()[MazeStatus.CURRENT_LOCATION]
+        req = requests.get(self.status_url)
+        if req.status_code != requests.codes.ok:
+            print("ERROR: maze location request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return tuple(req.json()[MazeStatus.CURRENT_LOCATION])
 
     """
-    @return: a 2-entry array representing [width, height]
+    @return: a tuple representing [width, height]
     """
     def size(self):
-        return requests.get(self.status_url).json()[MazeStatus.MAZE_SIZE]
+        req = requests.get(self.status_url)
+        if req.status_code != requests.codes.ok:
+            print("ERROR: maze size request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return tuple(req.json()[MazeStatus.MAZE_SIZE])
 
     """
     @return: an int representing the number of levels completed.
     """
     def levels_completed(self):
-        return requests.get(self.status_url).json()[MazeStatus.LEVELS_COMPLETED]
+        req = requests.get(self.status_url)
+        if req.status_code != requests.codes.ok:
+            print("ERROR: levels completed request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return req.json()[MazeStatus.LEVELS_COMPLETED]
 
     """
     @return: an int representing the number of levels in total.
     """
     def total_levels(self):
-        return requests.get(self.status_url).json()[MazeStatus.TOTAL_LEVELS]
+        req = requests.get(self.status_url)
+        if req.status_code != requests.codes.ok:
+            print("ERROR: total levels request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return req.json()[MazeStatus.TOTAL_LEVELS]
 
     """
     Updates the maze with the specified action.
@@ -75,6 +104,11 @@ class Maze(object):
     @return: the JSON response of POSTing the action.
     """
     def update(self, action):
-        return requests.post(self.update_url, data={
+        req = requests.post(self.update_url, data={
             MazeUpdate.ACTION: action
-        }).json()[MazeUpdate.RESULT]
+        })
+        if req.status_code != requests.codes.ok:
+            print("ERROR: update request rejected. Status code {}".format(req.status_code))
+            exit(1)
+        else:
+            return req.json()[MazeUpdate.RESULT]
