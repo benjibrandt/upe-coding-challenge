@@ -51,31 +51,23 @@ class MazeRunner(object):
         up = self.maze.update(MazeMove.UP)
         if up == MazeResult.END: return MazeMove.FOUND_END
         elif self._is_valid_move(up):
-            print("UP: " + up)
             self._log_square()
             self.maze.update(MazeMove.DOWN)
-            #print("moved down again")
         down = self.maze.update(MazeMove.DOWN)
         if down == MazeResult.END: return MazeMove.FOUND_END
         elif self._is_valid_move(down):
-            print("DOWN: " + down)
             self._log_square()
             self.maze.update(MazeMove.UP)
-            #print("moved up again")
         left = self.maze.update(MazeMove.LEFT)
         if left == MazeResult.END: return MazeMove.FOUND_END
         elif self._is_valid_move(left):
-            print("LEFT: " + left)
             self._log_square()
             self.maze.update(MazeMove.RIGHT)
-            #print("moved right again")
         right = self.maze.update(MazeMove.RIGHT)
         if right == MazeResult.END: return MazeMove.FOUND_END
         elif self._is_valid_move(right):
-            print("RIGHT: " + right)
             self._log_square()
             self.maze.update(MazeMove.LEFT)
-            #print("moved left again")
         return MazeMove.LOGGED
 
     """
@@ -85,25 +77,44 @@ class MazeRunner(object):
     """
     def _move_to(self, dest):
         curr_square = self.maze.current_location()
+        forcedMoveHoriz = False
+        forcedMoveVert = False
         while curr_square != dest:
-            while dest[MazeCoord.X] != curr_square[MazeCoord.X]:
+            moved = False
+            while dest[MazeCoord.X] != curr_square[MazeCoord.X] and not forcedMoveHoriz:
                 if curr_square[MazeCoord.X] > dest[MazeCoord.X]:
                     if self.maze.update(MazeMove.LEFT) != MazeResult.SUCCESS:
                         break
                     curr_square = self.maze.current_location()
+                    moved = True
                 else:  # curr_square[MazeCoord.X] < dest[MazeCoord.X]:
                     if self.maze.update(MazeMove.RIGHT) != MazeResult.SUCCESS:
                         break
                     curr_square = self.maze.current_location()
-            while dest[MazeCoord.Y] != curr_square[MazeCoord.Y]:
+                    moved = True
+            while dest[MazeCoord.Y] != curr_square[MazeCoord.Y] and not forcedMoveVert:
                 if curr_square[MazeCoord.Y] > dest[MazeCoord.Y]:
-                    if self.maze.update(MazeMove.DOWN) != MazeResult.SUCCESS:
-                        break
-                    curr_square = self.maze.current_location()
-                else:  # curr_square[MazeCoord.Y] < dest[MazeCoord.Y]
                     if self.maze.update(MazeMove.UP) != MazeResult.SUCCESS:
                         break
                     curr_square = self.maze.current_location()
+                    moved = True
+                else:  # curr_square[MazeCoord.Y] < dest[MazeCoord.Y]
+                    if self.maze.update(MazeMove.DOWN) != MazeResult.SUCCESS:
+                        break
+                    curr_square = self.maze.current_location()
+                    moved = True
+            if not moved:  # we have to move opposite of our preferred way
+                horiz_move = MazeMove.RIGHT if curr_square[MazeCoord.X] > dest[MazeCoord.X] else MazeMove.LEFT # noqa
+                vert_move = MazeMove.DOWN if curr_square[MazeCoord.Y] > dest[MazeCoord.Y] else MazeMove.UP # noqa
+                if self.maze.update(horiz_move) != MazeResult.SUCCESS:
+                    self.maze.update(vert_move)
+                    forcedMoveVert = True
+                else: 
+                    forcedMoveHoriz = True
+            else:
+                forcedMoveHoriz = False
+                forcedMoveVert = False
+
 
     """
     basically, we need to store a 'moves made to get here' thing when recording a square for encounter,

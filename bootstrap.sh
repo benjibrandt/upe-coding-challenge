@@ -68,7 +68,7 @@ main ()
     echo "Cleaning..."
     rm -rf build
     rm -rf __pycache__
-    find . -name "__pycache__" -exec rm -rf {} \;
+    find . -name "__pycache__" -delete
     find . -name "*.pyc" -delete
     echo "Done!"
   else
