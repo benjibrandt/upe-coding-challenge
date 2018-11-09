@@ -13,6 +13,8 @@ class MazeMove(object):
     DOWN = "DOWN"
     LEFT = "LEFT"
     RIGHT = "RIGHT"
+    FOUND_END = 1
+    LOGGED = 0
 
 
 class MazeUpdate(object):
@@ -45,3 +47,8 @@ class MazeStatus(object):
 class MazeAuth(object):
     TOKEN = "token"
     UID = "uid"
+
+
+class MazeCoord(object):
+    X = 0
+    Y = 1

@@ -65,8 +65,12 @@ buildVirtualEnv ()
 main ()
 {
   if $CLEAN; then
+    echo "Cleaning..."
     rm -rf build
     rm -rf __pycache__
+    find . -name "__pycache__" -exec rm -rf {} \;
+    find . -name "*.pyc" -delete
+    echo "Done!"
   else
     if [[ "$VIRTUAL_ENV" != "" ]]; then 
       echo "Already in a virtualenv. No need to bootstrap."
