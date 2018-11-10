@@ -111,6 +111,6 @@ class Maze(object):
             print("ERROR: update request rejected. Status code {}".format(req.status_code))
             exit(1)
         else:
-            print("action: {}".format(action))
-            print("post req.json(): {}".format(req.json()))
+            #print("action: {}".format(action))
+            #print("post req.json(): {}".format(req.json()))
             return req.json()[MazeUpdate.RESULT]

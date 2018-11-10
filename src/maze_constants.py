@@ -52,3 +52,10 @@ class MazeAuth(object):
 class MazeCoord(object):
     X = 0
     Y = 1
+
+
+class Bearings(object):
+    LEFT = 0
+    RIGHT = 2
+    UP = 1
+    DOWN = 3
