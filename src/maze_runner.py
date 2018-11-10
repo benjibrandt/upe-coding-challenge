@@ -41,7 +41,7 @@ class MazeRunner(object):
     def _valid_move(self, move_result):
         return move_result != MazeResult.WALL and move_result != MazeResult.OUT_OF_BOUNDS
     
-    def _pledge_algo(self, init_dir, dest):
+    def _pledge_algo_no_end_search(self, init_dir, dest):
         #print("<--- PLEDGE ALGO --->")
         bearing = -1
         direction = init_dir
@@ -69,6 +69,40 @@ class MazeRunner(object):
             if not changedDirectionPurposefully:
                 bearing -= 1
                 direction = self._get_counter_clockwise_direction(direction)
+
+    def _pledge_algo(self, init_dir):
+        #print("<--- PLEDGE ALGO --->")
+        bearing = -1
+        direction = init_dir
+        #print("dir: {}".format(direction))
+        #print("start lock: {}".format(self.maze.current_location()))
+        move = self.maze.update(direction)
+        while bearing != 0 and move != MazeResult.END:
+            move = self.maze.update(direction)
+            #print("bearing: {}".format(bearing))
+            changedDirectionPurposefully = False
+            while(self._valid_move(move)) and move != MazeResult.END:
+                #print("---> loc before move: {}".format(self.maze.current_location()))
+                clwdir = self._get_clockwise_direction(direction)
+                #print("``` attempting to move clockwise ```")
+                #print("``` clwdir: {}```".format(clwdir))
+                move = self.maze.update(clwdir)
+                if self._valid_move(move):
+                    #print("moved clockwise")
+                    #print("---> clwdir: {}".format(clwdir))
+                    direction = clwdir
+                    #print("~~~~=> new direction: {}".format(direction))
+                    #print(")))=> bearing-pre: {}".format(bearing))
+                    bearing += 1
+                    #print("(((=> bearing-post: {}".format(bearing))
+                    changedDirectionPurposefully = True
+                    break
+                move = self.maze.update(direction)
+                #print("broke out")
+            if not changedDirectionPurposefully:
+                bearing -= 1
+                direction = self._get_counter_clockwise_direction(direction)
+        return True
 
     def _is_end_square(self, move_result):
         return move_result == MazeResult.END
@@ -187,23 +221,23 @@ class MazeRunner(object):
                 if curr_square[MazeCoord.X] > dest[MazeCoord.X]:
                     direction = MazeMove.LEFT
                     if self.maze.update(direction) != MazeResult.SUCCESS:
-                        self._pledge_algo(self._get_counter_clockwise_direction(direction), dest)
+                        self._pledge_algo_no_end_search(self._get_counter_clockwise_direction(direction), dest)
                     curr_square = self.maze.current_location()
                 else:  # curr_square[MazeCoord.X] < dest[MazeCoord.X]:
                     direction = MazeMove.RIGHT
                     if self.maze.update(direction) != MazeResult.SUCCESS:
-                        self._pledge_algo(self._get_counter_clockwise_direction(direction), dest)
+                        self._pledge_algo_no_end_search(self._get_counter_clockwise_direction(direction), dest)
                     curr_square = self.maze.current_location()
             while dest[MazeCoord.Y] != curr_square[MazeCoord.Y]:
                 if curr_square[MazeCoord.Y] > dest[MazeCoord.Y]:
                     direction = MazeMove.UP
                     if self.maze.update(direction) != MazeResult.SUCCESS:
-                        self._pledge_algo(self._get_counter_clockwise_direction(direction), dest)
+                        self._pledge_algo_no_end_search(self._get_counter_clockwise_direction(direction), dest)
                     curr_square = self.maze.current_location()
                 else:  # curr_square[MazeCoord.Y] < dest[MazeCoord.Y]
                     direction = MazeMove.DOWN
                     if self.maze.update(direction) != MazeResult.SUCCESS:
-                        self._pledge_algo(self._get_counter_clockwise_direction(direction), dest)
+                        self._pledge_algo_no_end_search(self._get_counter_clockwise_direction(direction), dest)
                     curr_square = self.maze.current_location()
 
 
@@ -213,7 +247,7 @@ class MazeRunner(object):
     More or less, we should just need to check the given coordinate against our current coordinate, calculate
     moves back to there, and continue trying moves.
     """
-    def run(self):
+    def run_stack_pledge_hybrid(self):
         self.__debug_game_status()
         start_square = self.maze.current_location()
         self.tovisit.append(start_square)
@@ -239,6 +273,16 @@ class MazeRunner(object):
             #print("----")
             #print("~~~~~~")
             self.visited.add(curr_square)
+    
+    def run_pure_pledge(self):
+        self.__debug_game_status()
+        init_dir = MazeMove.DOWN  # arbitrary
+        while self.maze.game_state() == MazeGameState.PLAYING:
+            while self.maze.update(init_dir) == MazeResult.SUCCESS:
+                pass
+            if self._pledge_algo(init_dir):
+                print("<<< found the end! >>>")
+                self.__debug_game_status()
 
 
 if __name__ == '__main__':
@@ -246,4 +290,4 @@ if __name__ == '__main__':
     print("Input your UID to continue.")
     uid = input()
     mazerunner = MazeRunner(uid)
-    mazerunner.run()
+    mazerunner.run_pure_pledge()
