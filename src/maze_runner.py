@@ -53,24 +53,59 @@ class MazeRunner(object):
         """
         return move_result != MazeResult.WALL and move_result != MazeResult.OUT_OF_BOUNDS
 
+    def _make_move(self, direction):
+        """
+        Attempts to make the move in the given direction with as little AWS communication if possible.
+        Will check to see if the intended destination has been cached.
+            If cached: determines if move will be successful, and only contacts AWS if it will be.
+            If not: contacts the AWS API to attempt a move.
+        Local trackers such as maze_tracker and current_location will be updated appropriately.
+
+        @param direction: a value from maze_constants.MazeMove
+        @return: any value in maze_constants.MazeResult.
+        """
+        peek_loc = self.current_location.peek(direction)
+        if not self._in_bounds(peek_loc):
+            return MazeResult.OUT_OF_BOUNDS
+        x, y = peek_loc
+        cached_loc = self.maze_tracker[x][y]
+        if cached_loc != MazeMaterials.FOG:
+            if cached_loc != MazeMaterials.WALL:
+                self.current_location.move(direction)
+                self.maze.update(direction)
+            else:
+                return MazeResult.WALL
+        else:
+            move_result = self.maze.update(direction)
+            if self._valid_move(move_result):
+                self.current_location.move(direction)
+                self._update_maze_tracker(self.current_location, self._get_equivalent_maze_material(move_result))
+            return move_result
+
     def _pledge_algo(self, init_dir):
-        
         #print("<--- PLEDGE ALGO --->")
         bearing = -1
         direction = init_dir
         #print("dir: {}".format(direction))
-        #print("start lock: {}".format(self.maze.current_location()))
-        move = self.maze.update(direction)
-        while bearing != 0 and move != MazeResult.END:
-            move = self.maze.update(direction)
+        #print("start loc: {}".format(self.maze.current_location()))
+        while True:
+            move = self._make_move(direction)
+            if move == MazeResult.END:
+                return True
+            if bearing == 0:
+                break
             #print("bearing: {}".format(bearing))
             changedDirectionPurposefully = False
-            while(self._valid_move(move)) and move != MazeResult.END:
+            while True:
+                if move == MazeResult.END:
+                    return True
+                if not self._valid_move(move):
+                    break
                 #print("---> loc before move: {}".format(self.maze.current_location()))
                 clwdir = self._get_clockwise_direction(direction)
                 #print("``` attempting to move clockwise ```")
                 #print("``` clwdir: {}```".format(clwdir))
-                move = self.maze.update(clwdir)
+                move = self._make_move(clwdir)
                 if self._valid_move(move):
                     #print("moved clockwise")
                     #print("---> clwdir: {}".format(clwdir))
@@ -81,12 +116,12 @@ class MazeRunner(object):
                     #print("(((=> bearing-post: {}".format(bearing))
                     changedDirectionPurposefully = True
                     break
-                move = self.maze.update(direction)
+                move = self._make_move(direction)
                 #print("broke out")
             if not changedDirectionPurposefully:
                 bearing -= 1
                 direction = self._get_counter_clockwise_direction(direction)
-        return True
+        return False
 
     def _is_end_square(self, move_result):
         """
@@ -164,6 +199,24 @@ class MazeRunner(object):
 
         self.maze_tracker[location.x][location.y] = value
         return True
+
+    def _get_equivalent_maze_material(move_result)(self, move_result):
+        """
+        Finds the corrollary between maze_constants.MazeResult and maze_constants.MazeMaterials.
+
+        @param move_result: a value in maze_constants.MazeResult.
+        @return: the proper maze material, or None if move_result is invalid (either not in MazeResult, or OUT_OF_BOUNDS).
+        """
+        if move_result == MazeResult.END:
+            return MazeMaterials.END
+        elif move_result == MazeResult.OUT_OF_BOUNDS:
+            return None
+        elif move_result == MazeResult.SUCCESS:
+            return MazeMaterials.PATH
+        elif move_result == MazeResult.WALL:
+            return MazeMaterials.WALL
+        else:
+            return None
     
     def run_pure_pledge(self):
         self.report_game_status()
@@ -174,20 +227,16 @@ class MazeRunner(object):
             maze_size_x, maze_size_y = self.maze_size
             self.maze_tracker = [[MazeMaterials.FOG for x in range(maze_size_x)] for y in range(maze_size_y)] 
             while True:
-                maze_move = self.maze.update(init_dir)
+                maze_move = self._make_move(init_dir)
                 if maze_move != MazeResult.SUCCESS:
                     if maze_move == MazeResult.END:
                         print("<<< found the end! >>>")
-                        # reset maze runner
-                    elif maze_move == MazeResult.WALL:
-                        update_loc = self.current_location.peek(init_dir)
-                        self._update_maze_tracker(update_loc, MazeMaterials.WALL)
-                    break
-                self.current_location.move(init_dir)
-                self._update_maze_tracker(self.current_location, MazeMaterials.PATH)
-            if self._pledge_algo(init_dir):
-                print("<<< found the end! >>>")
-                self.report_game_status()
+                        self.report_game_status()
+                        break
+                    elif self._pledge_algo(init_dir):
+                        print("<<< found the end! >>>")
+                        self.report_game_status()
+                        break
 
 
 if __name__ == '__main__':
