@@ -50,7 +50,7 @@ class Location(object):
         elif direction == MazeMove.UP: y -= paces
         elif direction == MazeMove.DOWN: y += paces
         else: return None
-        return (x, y)
+        return Location((x, y))
 
     def set_location(self, new_location):
         """
