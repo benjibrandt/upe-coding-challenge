@@ -25,10 +25,7 @@ class MazeRunner(object):
 
     def __debug_game_status(self):
         print("==== game_status ====")
-        print("Size: {}".format(self.maze.size()))
         print("Game Sate: {}".format(self.maze.game_state()))
-        print("Total levels: {}".format(self.maze.total_levels()))
-        print("Levels completed: {}".format(self.maze.levels_completed()))
         print("====")
 
     """
@@ -282,7 +279,7 @@ class MazeRunner(object):
                 pass
             if self._pledge_algo(init_dir):
                 print("<<< found the end! >>>")
-                self.__debug_game_status()
+                #self.__debug_game_status()
 
 
 if __name__ == '__main__':
