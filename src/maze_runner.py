@@ -25,7 +25,7 @@ class MazeRunner(object):
         """
         print("==== game_status ====")
         #print("Size: {}".format(self.maze.size()))
-        #print("Game Sate: {}".format(self.maze.game_state()))
+        print("Game Sate: {}".format(self.maze.game_state()))
         #print("Total levels: {}".format(self.maze.total_levels()))
         print("Levels completed: {}".format(self.maze.levels_completed()))
         print("=====================")
@@ -240,7 +240,9 @@ class MazeRunner(object):
     def run_pure_pledge(self):
         self.report_game_status()
         init_dir = MazeMove.DOWN  # arbitrary
-        while self.maze.game_state() == MazeGameState.PLAYING:
+        level_total = self.maze.total_levels()
+        completed_total = self.maze.levels_completed()
+        while completed_total != level_total and self.maze.game_state() == MazeGameState.PLAYING:
             self.current_location = self.maze.current_location()
             self.maze_size = self.maze.size()
             maze_size_x, maze_size_y = self.maze_size
@@ -255,12 +257,13 @@ class MazeRunner(object):
                     if maze_move == MazeResult.END:
                         print("<<< found the end! >>>")
                         self.report_game_status()
+                        completed_total = self.maze.levels_completed()
                         break
                     elif self._pledge_algo(init_dir):
                         print("<<< found the end! >>>")
                         self.report_game_status()
+                        completed_total = self.maze.levels_completed()
                         break
-
 
 if __name__ == '__main__':
     print("Welcome to maze runner.")
@@ -268,3 +271,4 @@ if __name__ == '__main__':
     uid = input()
     mazerunner = MazeRunner(uid)
     mazerunner.run_pure_pledge()
+    print("Solved!")
