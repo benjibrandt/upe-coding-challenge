@@ -24,9 +24,9 @@ class MazeRunner(object):
         prints the relevant status information about the in-progress sovling session.
         """
         print("==== game_status ====")
-        print("Size: {}".format(self.maze.size()))
-        print("Game Sate: {}".format(self.maze.game_state()))
-        print("Total levels: {}".format(self.maze.total_levels()))
+        #print("Size: {}".format(self.maze.size()))
+        #print("Game Sate: {}".format(self.maze.game_state()))
+        #print("Total levels: {}".format(self.maze.total_levels()))
         print("Levels completed: {}".format(self.maze.levels_completed()))
         print("=====================")
 
