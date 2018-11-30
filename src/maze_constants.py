@@ -54,8 +54,8 @@ class MazeCoord(object):
     Y = 1
 
 
-class Bearings(object):
-    LEFT = 0
-    RIGHT = 2
-    UP = 1
-    DOWN = 3
+class MazeMaterials(object):
+    END = 2
+    WALL = 1
+    PATH = 0
+    FOG = -1
