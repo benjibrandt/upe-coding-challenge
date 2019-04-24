@@ -12,6 +12,17 @@
 ##############################################
 readonly PYTHON=python3
 readonly PIP=pip3
+readonly REQUIRED_PKGS=.bootstrap/requirements.txt
+readonly USAGE_MSG="~~~\n\
+Sets up the needed python virtualenv, or destroys it.\n\
+Think of it as the thing you gotta do to do actual work.\n\
+~~~\n\
+Usage: ./bootstrap.sh [options]\n\
+~~~\n"
+readonly VALID_OPTS="Valid options:\n\
+\t1) -c|--clean: blow away the virtualenv and clean/remove associated files.\n\
+\t2) -u|--usage: display this usage message.\n\
+\n"
 
 ##############################################
 # ARGUMENT PARSING
@@ -24,11 +35,20 @@ do
 key="$1"
 
 case $key in
-    -c|--clean)
+  -c|--clean)
     CLEAN=true
     shift # past argument
-    shift # past value
-    ;;
+  ;;
+  -u|--usage)
+    printf "$USAGE_MSG"
+    printf "$VALID_OPTS"
+    exit 0
+  ;;
+  *) # unknown option
+    echo "ERROR: unknown option specified."
+    printf "$VALID_OPTS"
+    exit 1
+  ;;
 esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
@@ -76,34 +96,34 @@ main ()
       echo "Already in a virtualenv. No need to bootstrap."
       exit 0
     fi
-    if [ -f build/bin/python3 ] || [ -f build/bin/pip ] ; then
+    if [ -f build/bin/$PYTHON ] || [ -f build/bin/pip ] ; then
       echo "virtualenv already setup. No need to bootstrap. Did you mean to clean?"
       exit 0
     fi
 
     echo "Verifying dependencies..."
     if verifyPathInstallaton $PIP; then
-      printf "\t✓ pip3 is available in the PATH\n"
+      printf "\t✓ $PIP is available in the PATH\n"
     else
-      printf "\t✗ pip3 is available in the PATH\n\n"
-      echo "ERROR: could not find pip3 in the PATH. Please ensure you've installed pip3 and properly set your PATH variable."
+      printf "\t✗ $PIP is available in the PATH\n\n"
+      echo "ERROR: could not find $PIP in the PATH. Please ensure you've installed $PIP and properly set your PATH variable."
       exit 1
     fi
 
     if verifyPathInstallaton $PYTHON; then
-      printf "\t✓ python3 is available in the PATH\n"
+      printf "\t✓ $PYTHON is available in the PATH\n"
     else
-      printf "\t✗ python3 is available in the PATH\n\n"
-      echo "ERROR: could not find python3 in the PATH. Please ensure you've installed python3 and properly set your PATH variable."
+      printf "\t✗ $PYTHON is available in the PATH\n\n"
+      echo "ERROR: could not find $PYTHON in the PATH. Please ensure you've installed $PYTHON and properly set your PATH variable."
       exit 1
     fi
 
-    if [[ $(pip list | grep -F virtualenv) != "" ]]; then
+    if [[ $($PIP list | grep -F virtualenv) != "" ]]; then
       printf "\t✓ virtualenv is installed\n\n"
     else
       printf "\t✗ virtualenv is installed\n"
       printf "ERROR: virtualenv not installed, acquiring...\n\n"
-      python -m pip install --user virtualenv
+      $PYTHON -m $PIP install --user virtualenv
       rc=$?; if [[ $rc != 0 ]]; then 
         printf "ERROR: virtualenv failed to install. Try cleaning (\`./bootstrap.sh -c\`) and re-bootstrapping.\n"
         exit $rc
